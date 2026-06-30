@@ -1,5 +1,5 @@
 from .database import Base
-from sqlalchemy import Column, Integer, String , ForeignKey
+from sqlalchemy import Column, Integer, String, ForeignKey, UniqueConstraint
 from sqlalchemy.sql.sqltypes import TIMESTAMP
 from sqlalchemy.sql.expression import text
 from sqlalchemy.orm import relationship
@@ -20,7 +20,7 @@ class Book(Base):
 
     book_id = Column(String, primary_key=True)
     book_name = Column(String, nullable=False)
-    file_hash = Column(String, unique=True, nullable=False)
+    file_hash = Column(String, nullable=False, index=True)
     user_id = Column(
         String,
         ForeignKey("users.id", ondelete="CASCADE")
@@ -34,6 +34,7 @@ class Book(Base):
     )
     pages = relationship(
         "Page",
+        back_populates="book",
         cascade="all, delete-orphan"
     )
 
@@ -68,5 +69,5 @@ class Page(Base):
     page_number = Column(Integer, nullable=False, index=True)
 
     content = Column(String, nullable=False)
-
-    book = relationship("Book")
+    
+    book = relationship("Book", back_populates="pages")

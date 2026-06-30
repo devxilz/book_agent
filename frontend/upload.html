@@ -1,0 +1,74 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <!-- Upload page. It uses /upload/books and /library/books. -->
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Upload Books - AI Book Teacher</title>
+    <link rel="stylesheet" href="./style.css" />
+  </head>
+  <body class="app-page" data-page="upload">
+    <aside class="app-nav">
+      <div class="brand-lockup compact-brand">
+        <span class="brand-mark">AB</span>
+        <div>
+          <p class="eyebrow">AI Book Teacher</p>
+          <h1>Library</h1>
+        </div>
+      </div>
+      <nav class="nav-links" aria-label="Main navigation">
+        <a class="nav-link is-active" href="/upload">Upload</a>
+        <a class="nav-link" href="/reader">Reader</a>
+      </nav>
+      <button id="logoutButton" class="nav-link logout-button" type="button">Logout</button>
+    </aside>
+
+    <main class="page-shell">
+      <header class="page-header">
+        <div>
+          <p class="eyebrow">Book ingestion</p>
+          <h2>Upload and index textbooks</h2>
+          <p id="pageStatus" class="muted-text">Preparing your library.</p>
+        </div>
+        <a class="button-link secondary-link" href="/reader">Open reader</a>
+      </header>
+
+      <section class="upload-grid">
+        <article class="upload-card">
+          <p class="eyebrow">New book</p>
+          <h3>Upload PDF</h3>
+          <p class="muted-text">
+            The backend extracts pages, detects chapters, creates embeddings,
+            and stores chunks in Chroma.
+          </p>
+
+          <!-- The file field must be named "file" in app.js for FastAPI. -->
+          <form id="uploadForm" class="form-stack">
+            <label>
+              Select textbook PDF
+              <input name="book" type="file" accept="application/pdf" required />
+            </label>
+            <button type="submit">Upload and process</button>
+          </form>
+        </article>
+
+        <article class="library-card">
+          <div class="card-heading">
+            <div>
+              <p class="eyebrow">Your collection</p>
+              <h3>Uploaded books</h3>
+            </div>
+            <button id="refreshLibrary" class="secondary-button" type="button">Refresh</button>
+          </div>
+
+          <!-- app.js fills this from GET /library/books. -->
+          <div id="bookList" class="enterprise-book-list">
+            <p class="empty-state">Loading books...</p>
+          </div>
+        </article>
+      </section>
+    </main>
+
+    <script src="./app.js"></script>
+  </body>
+</html>

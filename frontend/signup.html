@@ -1,0 +1,71 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <!-- Signup page. It talks to POST /signin in your FastAPI backend. -->
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Sign Up - AI Book Teacher</title>
+    <link rel="stylesheet" href="./style.css" />
+  </head>
+  <body class="auth-page" data-page="signup">
+    <main class="auth-shell">
+      <section class="auth-hero">
+        <div class="brand-lockup">
+          <span class="brand-mark">AB</span>
+          <div>
+            <p class="eyebrow">AI Book Teacher</p>
+            <h1>Build your learning library.</h1>
+          </div>
+        </div>
+        <p>
+          Create an account, upload a PDF textbook, then open the reader to
+          learn page by page.
+        </p>
+      </section>
+
+      <section class="auth-card">
+        <p class="eyebrow">Start learning</p>
+        <h2>Create account</h2>
+
+        <!-- The field names match your Pydantic UserCreate schema. -->
+        <form id="signupForm" class="form-stack">
+          <label>
+            Username
+            <input name="username" type="text" autocomplete="username" required />
+          </label>
+          <label>
+            Email
+            <input name="email" type="email" autocomplete="email" required />
+          </label>
+          <label>
+            Password
+            <input
+              name="password"
+              type="password"
+              autocomplete="new-password"
+              required
+            />
+          </label>
+          <label>
+            Confirm password
+            <input
+              name="confirm_password"
+              type="password"
+              autocomplete="new-password"
+              required
+            />
+          </label>
+          <button type="submit">Create account</button>
+        </form>
+
+        <p id="authStatus" class="status-text">After signup, you can log in.</p>
+        <p class="form-footer">
+          Already have an account?
+          <a href="/login">Login</a>
+        </p>
+      </section>
+    </main>
+
+    <script src="./app.js"></script>
+  </body>
+</html>

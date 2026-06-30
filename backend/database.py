@@ -6,13 +6,16 @@ from .config import settings
 
 SQLALCHEMY_DATABASE_URL = settings.sqlalchemy_database_url
 
+# One SQLAlchemy engine is shared by the app.
 engine = create_engine(SQLALCHEMY_DATABASE_URL)
 
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
 Base = declarative_base()
 
+
 def get_db():
+    """Provide one database session per request, then close it safely."""
     db = SessionLocal()
     try:
         yield db

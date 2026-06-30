@@ -1,0 +1,58 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <!-- Login page. It talks to POST /login in your FastAPI backend. -->
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Login - AI Book Teacher</title>
+    <link rel="stylesheet" href="./style.css" />
+  </head>
+  <body class="auth-page" data-page="login">
+    <main class="auth-shell">
+      <section class="auth-hero">
+        <div class="brand-lockup">
+          <span class="brand-mark">AB</span>
+          <div>
+            <p class="eyebrow">AI Book Teacher</p>
+            <h1>Your textbook, turned into a teacher.</h1>
+          </div>
+        </div>
+        <p>
+          Sign in to upload books, open your reading workspace, and ask grounded
+          questions from the selected textbook.
+        </p>
+      </section>
+
+      <section class="auth-card">
+        <p class="eyebrow">Welcome back</p>
+        <h2>Login</h2>
+
+        <!-- The backend expects form-urlencoded username/password fields. -->
+        <form id="loginForm" class="form-stack">
+          <label>
+            Email
+            <input name="email" type="email" autocomplete="email" required />
+          </label>
+          <label>
+            Password
+            <input
+              name="password"
+              type="password"
+              autocomplete="current-password"
+              required
+            />
+          </label>
+          <button type="submit">Continue</button>
+        </form>
+
+        <p id="authStatus" class="status-text">Use your account email and password.</p>
+        <p class="form-footer">
+          New here?
+          <a href="/signup">Create an account</a>
+        </p>
+      </section>
+    </main>
+
+    <script src="./app.js"></script>
+  </body>
+</html>

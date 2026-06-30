@@ -1,0 +1,115 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <!-- Reader page. Page teaching and user_query both happen here. -->
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Reader - AI Book Teacher</title>
+    <link rel="stylesheet" href="./style.css" />
+  </head>
+  <body class="app-page reader-page" data-page="reader">
+    <aside class="app-nav">
+      <div class="brand-lockup compact-brand">
+        <span class="brand-mark">AB</span>
+        <div>
+          <p class="eyebrow">AI Book Teacher</p>
+          <h1>Reader</h1>
+        </div>
+      </div>
+      <nav class="nav-links" aria-label="Main navigation">
+        <a class="nav-link" href="/upload">Upload</a>
+        <a class="nav-link is-active" href="/reader">Reader</a>
+      </nav>
+      <button id="logoutButton" class="nav-link logout-button" type="button">Logout</button>
+    </aside>
+
+    <main class="reader-shell">
+      <!-- Left column: book and chapter navigation like a reading app. -->
+      <aside class="reader-library">
+        <div class="pane-heading">
+          <div>
+            <p class="eyebrow">Library</p>
+            <h2>Books</h2>
+          </div>
+          <button id="refreshLibrary" class="secondary-button" type="button">Refresh</button>
+        </div>
+        <div id="bookList" class="reader-book-list">
+          <p class="empty-state">Loading books...</p>
+        </div>
+
+        <div class="pane-heading chapter-heading">
+          <div>
+            <p class="eyebrow">Structure</p>
+            <h2>Chapters</h2>
+          </div>
+        </div>
+        <div id="chapterList" class="reader-chapter-list">
+          <p class="empty-state">Select a book to view chapters.</p>
+        </div>
+      </aside>
+
+      <!-- Center column: the page lesson appears here. -->
+      <section class="reading-pane">
+        <header class="reader-header">
+          <div>
+            <p class="eyebrow">Selected book</p>
+            <h2 id="activeBookTitle">No book selected</h2>
+            <p id="activeBookMeta" class="muted-text">
+              Choose a book, then teach a page.
+            </p>
+          </div>
+        </header>
+
+        <!-- Controls call POST /chat/page_summary. -->
+        <form id="pageForm" class="reader-toolbar">
+          <input name="book_id" type="hidden" required />
+          <button id="previousPage" class="secondary-button" type="button">Previous</button>
+          <label>
+            Page
+            <input name="page" type="number" min="1" value="1" required />
+          </label>
+          <button type="submit">Teach page</button>
+          <button id="nextPage" class="secondary-button" type="button">Next</button>
+        </form>
+
+        <article id="lessonOutput" class="lesson-output">
+          <p class="empty-state">
+            The lesson will appear here after you select a book and click
+            Teach page.
+          </p>
+        </article>
+      </section>
+
+      <!-- Right column: this is the user_query assistant beside the book teacher. -->
+      <aside class="assistant-pane">
+        <header class="assistant-header">
+          <div>
+            <p class="eyebrow">Ask the book</p>
+            <h2>AI assistant</h2>
+          </div>
+          <button id="clearChat" class="secondary-button" type="button">Clear</button>
+        </header>
+
+        <section id="chatMessages" class="assistant-messages" aria-live="polite">
+          <article class="assistant-bubble">
+            Ask a question about the selected book. I will answer using the
+            retrieved textbook chunks.
+          </article>
+        </section>
+
+        <!-- This calls POST /chat/user_query with the active book_id. -->
+        <form id="questionForm" class="assistant-composer">
+          <textarea
+            name="text"
+            rows="3"
+            placeholder="Ask a question from this book..."
+            required
+          ></textarea>
+          <button type="submit">Ask</button>
+        </form>
+      </aside>
+    </main>
+
+    <script src="./app.js"></script>
+  </body>
+</html>
