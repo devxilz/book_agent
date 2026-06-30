@@ -17,9 +17,6 @@ def login(
     # OAuth2PasswordRequestForm calls the login email field "username".
     user = db.query(models.User).filter(
         models.User.email == user_credentials.username).first()
-    print(user_credentials)
-    print(user_credentials.username)
-    print(user_credentials.password)
     if not user:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN, detail=f"Email")
