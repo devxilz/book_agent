@@ -9,10 +9,10 @@ class Settings(BaseSettings):
     algorithm: str
     access_token_expire_minutes: int
     llm_model_name: str
-
-    # Local development uses HTTP, so this defaults to False.
-    # In production behind HTTPS, set COOKIE_SECURE=true in .env.
-    cookie_secure: bool = False
+    vlm_model_name: str
+    cookie_secure: bool = False # change it when in production to true.
+    openai_api_key: str | None = None
+    openai_model: str | None = None
 
     class Config:
         env_file = ".env"

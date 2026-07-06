@@ -453,15 +453,11 @@ textarea {
 /* Used by: div class="book-card" or div class="chapter-card" in book lists */
 .book-card,
 .chapter-card {
-  width: 100%;
   position: relative;
   overflow: hidden;
   border: 1px solid var(--line);
   border-radius: 12px;
-  color: var(--ink);
   background: var(--surface-soft);
-  padding: 14px;
-  text-align: left;
   transition:
     border-color 220ms cubic-bezier(0.2, 0.8, 0.2, 1),
     box-shadow 220ms cubic-bezier(0.2, 0.8, 0.2, 1);
@@ -472,8 +468,35 @@ textarea {
 .chapter-card:hover {
   border-color: var(--accent);
   background: rgba(17, 19, 21, 0.94);
-  color: #fff;
   box-shadow: 0 8px 20px rgba(17, 19, 21, 0.2);
+}
+
+.book-card-actions {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 10px;
+  align-items: stretch;
+  padding: 14px;
+}
+
+.book-card-main {
+  width: 100%;
+  border: 0;
+  color: var(--ink);
+  background: transparent;
+  padding: 0;
+  text-align: left;
+  justify-content: flex-start;
+}
+
+.book-card-main:hover {
+  background: transparent;
+  transform: none;
+}
+
+.book-card:hover .book-card-main,
+.book-card.is-active .book-card-main {
+  color: #fff;
 }
 
 .book-card h3,
@@ -505,6 +528,31 @@ textarea {
   font-weight: 800;
   letter-spacing: 0.06em;
   text-transform: uppercase;
+}
+
+.book-card:hover .book-card-kicker,
+.book-card.is-active .book-card-kicker {
+  color: #dff8ef;
+  background: rgba(255, 255, 255, 0.14);
+}
+
+.delete-book-button {
+  align-self: start;
+  border: 1px solid rgba(180, 35, 24, 0.22);
+  color: var(--danger);
+  background: rgba(180, 35, 24, 0.08);
+  padding: 0.65rem 0.8rem;
+}
+
+.delete-book-button:hover {
+  background: var(--danger);
+  color: #fff;
+  transform: translateY(-1px);
+}
+
+.book-card:hover .delete-book-button,
+.book-card.is-active .delete-book-button {
+  border-color: rgba(255, 255, 255, 0.24);
 }
 
 .book-card p,

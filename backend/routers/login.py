@@ -19,11 +19,11 @@ def login(
         models.User.email == user_credentials.username).first()
     if not user:
         raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN, detail=f"Email")
+            status_code=status.HTTP_403_FORBIDDEN, detail=f"Invalid Credential.")
 
     if not utils.verify(user_credentials.password, user.hashed_password):
         raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN, detail=f"Password")
+            status_code=status.HTTP_403_FORBIDDEN, detail=f"Invalid Credential.")
 
     access_token = oauth2.create_access_token(data={"user_id": user.id})
 

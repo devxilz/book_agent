@@ -1,15 +1,83 @@
 import logging
-
+import re
 from fastapi import HTTPException, status
 from ollama import chat
 from sqlalchemy.orm import Session
-
+from openai import OpenAI
 from backend import models
 from backend.config import settings
 from backend.prompts.system import SYSTEM_PROMPT
 
-
+client = OpenAI(api_key=settings.openai_api_key,base_url="https://api.groq.com/openai/v1",)
 logger = logging.getLogger(__name__)
+
+
+PERSONAL_INFO_PATTERNS = (
+    re.compile(r"^\s*name\s*[:\-].*$", re.IGNORECASE),
+    re.compile(r"^\s*student\s*name\s*[:\-].*$", re.IGNORECASE),
+    re.compile(r"^\s*roll\s*(?:no|number)?\s*[:\-].*$", re.IGNORECASE),
+    re.compile(r"^\s*class\s*[:\-].*$", re.IGNORECASE),
+    re.compile(r"^\s*section\s*[:\-].*$", re.IGNORECASE),
+    re.compile(r"^\s*sec\s*[:\-].*$", re.IGNORECASE),
+    re.compile(r"^\s*submitted\s+by\s*[:\-].*$", re.IGNORECASE),
+    re.compile(r"^\s*prepared\s+by\s*[:\-].*$", re.IGNORECASE),
+    re.compile(r"^\s*written\s+by\s*[:\-].*$", re.IGNORECASE),
+    re.compile(r"^\s*author\s*[:\-].*$", re.IGNORECASE),
+)
+
+PERSONAL_INFO_PREFIXES = (
+    "name",
+    "studentname",
+    "writername",
+    "authorname",
+    "rollno",
+    "rollnumber",
+    "rolno",
+    "roino",
+    "class",
+    "section",
+    "sec",
+    "submittedby",
+    "preparedby",
+    "writtenby",
+    "author",
+    "signature",
+    "schoolname",
+)
+
+
+def strip_note_owner_metadata(text: str) -> str:
+    """Remove common note-owner labels so the model does not teach them."""
+    cleaned_lines = []
+    for line in text.splitlines():
+        if is_owner_metadata_line(line):
+            continue
+        cleaned_lines.append(line)
+    return "\n".join(cleaned_lines).strip()
+
+
+def normalize_line_for_label_check(line: str) -> str:
+    """Collapse OCR punctuation and spacing so noisy labels still match."""
+    return re.sub(r"[^a-z0-9]+", "", line.lower())
+
+
+def is_owner_metadata_line(line: str) -> bool:
+    """Detect common note-owner lines, including OCR-broken variants."""
+    if any(pattern.match(line) for pattern in PERSONAL_INFO_PATTERNS):
+        return True
+
+    normalized = normalize_line_for_label_check(line)
+    if not normalized:
+        return False
+
+    has_separator = any(sep in line for sep in (":", "=", "-", "|"))
+    short_line = len(line.strip()) <= 50
+
+    for prefix in PERSONAL_INFO_PREFIXES:
+        if normalized.startswith(prefix) and (has_separator or short_line):
+            return True
+
+    return False
 
 
 def query(text: str, system_prompt: str | None = None):
@@ -17,15 +85,18 @@ def query(text: str, system_prompt: str | None = None):
     model_name = settings.llm_model_name
     try:
         if system_prompt:
-            return chat(
-                model=model_name,
-                messages=[
-                    {"role": "system", "content": system_prompt},
-                    {"role": "user", "content": text},
-                ],
-            )
+            respones = chat(
+                    model=settings.llm_model_name,
+                    messages=[
+                        {"role": "system", "content": system_prompt},{"role": "user", "content": text}],
+                )
+            print(respones)
+            return respones
 
-        return chat(model=model_name, messages=[{"role": "user", "content": text}])
+        return chat(
+                    model=settings.llm_model_name,
+                    messages=[{"role": "user", "content": text}],
+                )
     except Exception as exc:
         logger.exception("Ollama failed")
         raise HTTPException(
@@ -43,38 +114,41 @@ async def page_call(book_id: str, page: int, db: Session):
     if not page_obj:
         raise HTTPException(status.HTTP_404_NOT_FOUND, detail=f"{page} not found.")
 
-    text = page_obj.content
+    text = strip_note_owner_metadata(page_obj.content)
     if not text.strip():
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail=f"Page {page} has no extractable text to teach.",
+            detail=f"Page {page} has no teachable text after filtering note metadata.",
         )
 
     user_prompt = f"""Teach the following page.
+    Teach the content of the provided page to a complete beginner.
 
-                Your task is NOT to summarize it.
+        Behavior Rules
 
-                Your task is to act like an experienced teacher explaining the page to a complete beginner.
+        - Use the provided page as your primary source.
+        - Only use outside knowledge when absolutely necessary to explain a term or grammar assumed by the page.
+        - Do not introduce new facts, examples, or ideas beyond what is necessary.
+        - Do not omit any information from the page.
+        - Preserve the original order of ideas.
+        - Explain every important idea thoroughly.
+        - Explain the reasoning behind important statements.
+        - Explain how each paragraph relates to the previous one when a genuine connection exists.
+        - Make all cause-effect relationships explicit using only information from the page.
+        - If a sentence contains multiple ideas, explain those ideas separately.
+        - If the page ends abruptly, stop after reproducing the last sentence exactly as it appears.
 
-                Requirements:
+        Output Style
+        - write headings or subheading in big and bold letters.
+        - Write naturally, as if teaching a student.
+        - Organize the explanation into paragraphs and section headings when helpful.
+        - Do NOT quote every sentence before explaining it.
+        - Do NOT label content as "Sentence 1", "Sentence 2", or use sentence numbers.
+        - Do NOT produce a sentence-by-sentence transcript.
+        - Integrate explanations into a continuous narrative while preserving the original order of ideas.
+        
+        <Page_Context>
+            {text}
+        </Page_Context>"""
 
-                - Use provided page as your primary source of knowledge.
-                - Only use outside knowledge when it is absolutely necessary to understand a term or grammar that the page assumes the reader already knows. Any outside information must be minimal and must not introduce new facts, examples, or ideas beyond what is necessary to understand the page.
-                - Do not add examples, facts, definitions, or explanations that are not supported by the page.
-                - Do not skip any sentence.
-                - Explain every idea thoroughly.
-                - Explain the reasoning behind every important statement.
-                - Explain how each paragraph connects to the previous one. If there is genuinely no connection to make, do not try to make one.
-                - For every cause-effect relationship in the page, write it out explicitly using an A -> B -> C chain, filled in only with what the page states. If a paragraph has no cause-effect relationship, do not try to make one.
-                - Explain important concepts using only information available in the page. If the page uses a term without ever explaining what it means, explain it only if you know what it means.
-                - Do not explain by swapping words for easier synonyms. Explain the underlying mechanism or relationship instead; your explanation should not look like the original sentence with a few words changed.
-                - For any sentence that bundles multiple ideas, requirements, or consequences together, break it into separate short steps instead of one dense explanation.
-                - Keep the same order as the original page.
-                - If the page ends abruptly or is incomplete, simply state the last sentence exactly as it appears on the page. Do not speculate, summarize, explain why it is incomplete, or add any additional comments.
-
-                The goal is that after reading your explanation, someone who has never seen the page can understand every idea the author intended to communicate without missing any information.
-
-                <Page_Context>
-                {text}
-                </Page_Context>"""
     return query(user_prompt, SYSTEM_PROMPT)

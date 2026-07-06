@@ -201,6 +201,26 @@ async function loadChapters(bookId) {
   return data.chapters || [];
 }
 
+async function deleteBook(book) {
+  const title = book.display_name || cleanBookTitle(book.book_name);
+  const confirmed = window.confirm(`Delete "${title}" from your library?`);
+  if (!confirmed) {
+    return;
+  }
+
+  await request(`/library/books/${encodeURIComponent(book.book_id)}`, {
+    method: "DELETE",
+    headers: authHeaders(),
+  });
+
+  if (state.activeBook?.book_id === book.book_id) {
+    state.activeBook = null;
+    sessionStorage.removeItem("aiBookTeacherActiveBookId");
+  }
+
+  await loadBooks();
+}
+
 function renderBookList(targetSelector, mode = "upload") {
   const container = qs(targetSelector);
   if (!container) {
@@ -214,24 +234,75 @@ function renderBookList(targetSelector, mode = "upload") {
 
   container.innerHTML = "";
   state.books.forEach((book) => {
-    const card = document.createElement("button");
-    card.type = "button";
+    const card = document.createElement("article");
     card.className = `book-card ${state.activeBook?.book_id === book.book_id ? "is-active" : ""}`;
     const title = book.display_name || cleanBookTitle(book.book_name);
-    card.innerHTML = `
+
+    const openButton = document.createElement("button");
+    openButton.type = "button";
+    openButton.className = "book-card-main";
+    openButton.innerHTML = `
       <span class="book-card-kicker">${mode === "reader" ? "Reading" : "Textbook"}</span>
       <h3>${escapeHtml(title)}</h3>
     `;
 
     if (mode === "reader") {
-      card.addEventListener("click", () => selectReaderBook(book));
+      openButton.addEventListener("click", () => selectReaderBook(book));
     } else {
-      card.addEventListener("click", () => {
+      openButton.addEventListener("click", () => {
         sessionStorage.setItem("aiBookTeacherActiveBookId", book.book_id);
         window.location.href = "/reader";
       });
     }
 
+    const deleteButton = document.createElement("button");
+    deleteButton.type = "button";
+    deleteButton.className = "delete-book-button";
+    deleteButton.textContent = "Delete";
+    deleteButton.addEventListener("click", async () => {
+      try {
+        if (mode === "reader") {
+          renderAssistantMessage("system", `Deleting ${title}...`);
+        } else {
+          setPageStatus(`Deleting ${title}...`);
+        }
+
+        await deleteBook(book);
+        renderBookList(targetSelector, mode);
+
+        if (mode === "reader") {
+          const nextBook = state.books[0];
+          if (nextBook) {
+            await selectReaderBook(nextBook);
+            renderAssistantMessage("system", `${title} deleted.`);
+          } else {
+            const pageForm = qs("#pageForm");
+            if (pageForm) {
+              pageForm.elements.book_id.value = "";
+              pageForm.elements.page.value = "1";
+            }
+            setText("#activeBookTitle", "No book selected");
+            setText("#activeBookMeta", "Upload a PDF first, then return to the reader.");
+            qs("#chapterList").innerHTML = '<p class="empty-state">Select a book to view chapters.</p>';
+            qs("#lessonOutput").innerHTML = '<p class="empty-state">Upload a PDF first, then return to the reader.</p>';
+            renderAssistantMessage("system", `${title} deleted.`);
+          }
+        } else {
+          setPageStatus(`${title} deleted from your library.`);
+        }
+      } catch (error) {
+        if (mode === "reader") {
+          renderAssistantMessage("error", error.message);
+        } else {
+          setPageStatus(error.message);
+        }
+      }
+    });
+
+    const actions = document.createElement("div");
+    actions.className = "book-card-actions";
+    actions.append(openButton, deleteButton);
+    card.appendChild(actions);
     container.appendChild(card);
   });
 }

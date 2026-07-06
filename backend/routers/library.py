@@ -1,16 +1,21 @@
+import logging
+from pathlib import Path
+
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy import func
 from sqlalchemy.orm import Session
 
-from backend import models, oauth2
+from backend import chroma_db, models, oauth2
+from backend.config import settings
 from backend.database import get_db
 
 
 router = APIRouter(prefix="/library", tags=["Library"])
+logger = logging.getLogger(__name__)
 
 
 def clean_book_title(filename: str):
-    # Keep the original filename in the database, but expose a nicer display name.
+    # for a nicer display name.
     title = filename.removesuffix(".pdf").removesuffix(".PDF")
     noisy_markers = ("z-library", "z-lib", "1lib", "libgen", "archive", ".sk", ".com", ".org")
 
@@ -118,3 +123,29 @@ def list_book_chapters(
             for chapter in chapters
         ]
     }
+
+
+@router.delete("/books/{book_id}")
+def delete_book(
+    book_id: str,
+    current_user=Depends(oauth2.get_current_user),
+    db: Session = Depends(get_db)
+):
+    book = get_owned_book(book_id, current_user.id, db)
+    file_path = Path(settings.books_upload_path) / f"{book.book_id}.pdf"
+
+    db.delete(book)
+    db.commit()
+
+    if file_path.exists():
+        try:
+            file_path.unlink()
+        except OSError:
+            logger.exception("Failed to delete stored PDF for book %s", book.book_id)
+
+    try:
+        chroma_db.collection.delete(where={"book_id": book.book_id})
+    except Exception:
+        logger.exception("Failed to delete Chroma embeddings for book %s", book.book_id)
+
+    return {"message": "Book deleted successfully."}

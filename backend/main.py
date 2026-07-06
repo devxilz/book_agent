@@ -8,6 +8,11 @@ from .database import engine
 models.Base.metadata.create_all(bind=engine)
 
 app = FastAPI(title="AI Book Teacher")
+NO_CACHE_HEADERS = {
+    "Cache-Control": "no-store, no-cache, must-revalidate, max-age=0",
+    "Pragma": "no-cache",
+    "Expires": "0",
+}
 
 
 # API routers that contain your backend features.
@@ -22,7 +27,7 @@ frontend_dir = Path(__file__).resolve().parent.parent / "frontend"
 
 
 def frontend_page(filename: str):
-    return FileResponse(frontend_dir / filename)
+    return FileResponse(frontend_dir / filename, headers=NO_CACHE_HEADERS)
 
 
 @app.middleware("http")
@@ -83,12 +88,20 @@ def reader_page():
 
 @app.get("/style.css", include_in_schema=False)
 def stylesheet():
-    return FileResponse(frontend_dir / "style.css", media_type="text/css")
+    return FileResponse(
+        frontend_dir / "style.css",
+        media_type="text/css",
+        headers=NO_CACHE_HEADERS,
+    )
 
 
 @app.get("/app.js", include_in_schema=False)
 def javascript():
-    return FileResponse(frontend_dir / "app.js", media_type="text/javascript")
+    return FileResponse(
+        frontend_dir / "app.js",
+        media_type="text/javascript",
+        headers=NO_CACHE_HEADERS,
+    )
 
 
 @app.get("/{legacy_page}.html", include_in_schema=False)

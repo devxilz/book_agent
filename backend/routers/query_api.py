@@ -1,6 +1,5 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
-
 from backend import chroma_db, models, oauth2, schemas
 from backend.database import get_db
 from backend.prompts.user import USER_QUERY_PROMPT
@@ -108,4 +107,4 @@ async def user_query(
             - If the context does not contain enough information, state that clearly in one or two lines and briefly explain what is missing.
             """
     response = query(prompt, USER_QUERY_PROMPT)
-    return schemas.SummaryResponse(response=response.message.content)
+    return schemas.SummaryResponse(response = response.message.content)
