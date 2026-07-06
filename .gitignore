@@ -22,6 +22,9 @@ books_uploads/
 # ChromaDB
 chroma_db/
 
+#temp
+temp/
+
 # OS files
 .DS_Store
 Thumbs.db
