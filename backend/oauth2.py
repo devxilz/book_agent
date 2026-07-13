@@ -6,7 +6,6 @@ from datetime import datetime, timedelta
 from backend import schemas
 from .config import settings
 
-# auto_error=False lets us support both Authorization headers and httpOnly cookies.
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="login", auto_error=False)
 
 SECRET_KEY = settings.secret_key
@@ -14,12 +13,11 @@ ALGORITHM = settings.algorithm
 ACCESS_TOKEN_EXPIRE_MINUTES = settings.access_token_expire_minutes
 ACCESS_TOKEN_COOKIE_NAME = "access_token"
 
-# Local in-memory logout list. For production, store revoked token ids in Redis/DB.
 revoked_token_ids = set()
 
 
 def create_access_token(data: dict):
-    """Create a short-lived JWT with a unique id so logout can revoke it."""
+    """Create a short-lived JWT with a unique id."""
     to_encode = data.copy()
     expire = datetime.utcnow() + timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
     to_encode.update({"exp": expire, "jti": str(uuid.uuid4())})

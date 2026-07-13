@@ -28,7 +28,7 @@ async def upload_books(filename: str, file_hash: str, content: bytes, current_us
         user_id=current_user.id
     )
 
-    # Store the physical PDF under a UUID so user filenames cannot affect paths.
+    # Store the physical PDF under a UUID 
     with open(file_location, "wb") as buffer:
         buffer.write(content)
 
@@ -36,7 +36,6 @@ async def upload_books(filename: str, file_hash: str, content: bytes, current_us
     chapter_pattern = re.compile(r"^(chapter|ch\.?)\s*\d+", re.IGNORECASE)
     chapters = []
 
-    # Extract every page into SQL so page_summary can teach a chosen page exactly.
 
     with fitz.open(file_location) as pdf:
         toc = pdf.get_toc()
@@ -122,13 +121,12 @@ async def extract_text_from_book(book_id: str, db: Session):
             batch_docs = all_chunks[start:end]
             batch_embeddings = embeddings[start:end]
             batch_metadata = all_metadata[start:end]
-
-        chroma_db.collection.add(
-            ids=[str(uuid.uuid4()) for _ in batch_docs],
-            documents=batch_docs,
-            embeddings=batch_embeddings.tolist(),
-            metadatas=batch_metadata,
-        )
+            chroma_db.collection.add(
+                ids=[str(uuid.uuid4()) for _ in batch_docs],
+                documents=batch_docs,
+                embeddings=batch_embeddings.tolist(),
+                metadatas=batch_metadata,
+            )
     return {"message": "book is successfully embedded and stored in the database"}
 
 def is_scanned_image_page(page) -> bool:

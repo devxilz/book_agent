@@ -71,3 +71,24 @@ class Page(Base):
     content = Column(String, nullable=False)
     
     book = relationship("Book", back_populates="pages")
+
+class UserQuery(Base):
+    __tablename__ = "user_queries"
+
+    query_id = Column(String, primary_key=True)
+    user_id = Column(
+        String, 
+        ForeignKey("users.id", ondelete="CASCADE"), 
+        nullable=False, 
+        index=True
+        )
+    book_id = Column(
+        String, 
+        ForeignKey("books.book_id", ondelete="CASCADE"), 
+        nullable=False, 
+        index=True
+        )
+    page_number = Column(Integer, nullable=False)
+    query_text = Column(String, nullable=False)
+    response_text = Column(String, nullable=False)
+    created_at = Column(TIMESTAMP(timezone=True), nullable=False, server_default=text("now()"))

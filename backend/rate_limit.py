@@ -4,7 +4,6 @@ from collections import defaultdict, deque
 from fastapi import HTTPException, Request, status
 
 
-# In-memory request log for local protection. Use Redis for multi-server production.
 request_log = defaultdict(deque)
 
 

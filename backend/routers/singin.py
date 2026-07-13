@@ -13,7 +13,6 @@ def signin(user_info: UserCreate, db: Session = Depends(get_db)):
     # Check if the passwords match
     if user_info.password != user_info.confirm_password:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Passwords do not match.")
-    # Return a friendly 400 instead of a database error for duplicate emails.
     existing_user = db.query(models.User).filter(
         models.User.email == user_info.email
     ).first()
@@ -33,7 +32,6 @@ def signin(user_info: UserCreate, db: Session = Depends(get_db)):
     db.add(new_user)
     db.commit()
     db.refresh(new_user)
-    # Do not return the hashed password to the frontend.
     return {
         "id": new_user.id,
         "username": new_user.username,

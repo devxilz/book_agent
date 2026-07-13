@@ -22,7 +22,6 @@ app.include_router(singin.router)
 app.include_router(query_api.router)
 app.include_router(library.router)
 
-# The frontend is served by FastAPI so cookies stay same-origin and httpOnly.
 frontend_dir = Path(__file__).resolve().parent.parent / "frontend"
 
 

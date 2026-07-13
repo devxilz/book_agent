@@ -57,12 +57,12 @@ def strip_note_owner_metadata(text: str) -> str:
 
 
 def normalize_line_for_label_check(line: str) -> str:
-    """Collapse OCR punctuation and spacing so noisy labels still match."""
+
     return re.sub(r"[^a-z0-9]+", "", line.lower())
 
 
 def is_owner_metadata_line(line: str) -> bool:
-    """Detect common note-owner lines, including OCR-broken variants."""
+
     if any(pattern.match(line) for pattern in PERSONAL_INFO_PATTERNS):
         return True
 
@@ -85,13 +85,12 @@ def query(text: str, system_prompt: str | None = None):
     model_name = settings.llm_model_name
     try:
         if system_prompt:
-            respones = chat(
+            response = chat(
                     model=settings.llm_model_name,
                     messages=[
                         {"role": "system", "content": system_prompt},{"role": "user", "content": text}],
                 )
-            print(respones)
-            return respones
+            return response
 
         return chat(
                     model=settings.llm_model_name,
@@ -106,7 +105,7 @@ def query(text: str, system_prompt: str | None = None):
 
 
 async def page_call(book_id: str, page: int, db: Session):
-    """Teach one exact SQL page. Retrieval is intentionally not used here."""
+    """Teach one exact SQL page."""
     page_obj = db.query(models.Page).filter(
         models.Page.book_id == book_id,
         models.Page.page_number == page,

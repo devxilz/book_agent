@@ -51,8 +51,7 @@ def read_current_user(
     current_user=Depends(oauth2.get_current_user),
     db: Session = Depends(get_db)
 ):
-    # The frontend uses this to restore the saved token session after refresh.
-    user = db.query(models.User).filter(models.User.id == current_user.id).first()
+    user = db.get(models.User, current_user.id) #get only work for primary key
     if not user:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
@@ -70,7 +69,7 @@ def list_books(
     current_user=Depends(oauth2.get_current_user),
     db: Session = Depends(get_db)
 ):
-    # This gives the frontend a practical library instead of manual book IDs.
+    # this give info about the books to frontend
     books = db.query(models.Book).filter(
         models.Book.user_id == current_user.id
     ).order_by(models.Book.book_name).all()

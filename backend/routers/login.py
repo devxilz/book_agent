@@ -27,7 +27,6 @@ def login(
 
     access_token = oauth2.create_access_token(data={"user_id": user.id})
 
-    # Store the token in an httpOnly cookie so frontend JavaScript cannot read it.
     response.set_cookie(
         key=oauth2.ACCESS_TOKEN_COOKIE_NAME,
         value=access_token,

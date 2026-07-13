@@ -1,8 +1,10 @@
+import uuid
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 from backend import chroma_db, models, oauth2, schemas
 from backend.database import get_db
 from backend.prompts.user import USER_QUERY_PROMPT
+from backend.query_rewriter import query_rewrite
 from backend.query import page_call, query
 from backend.rate_limit import rate_limit
 from backend.utils import get_embedding
@@ -22,7 +24,7 @@ async def page_summary(
     db: Session = Depends(get_db),
     current_user=Depends(oauth2.get_current_user),
 ):
-    """Teach one selected page from a book owned by the logged-in user."""
+    """Teach one selected page from a book """
     book = db.query(models.Book).filter(
         models.Book.book_id == book_id,
         models.Book.user_id == current_user.id,
@@ -55,6 +57,7 @@ async def page_summary(
 async def user_query(
     text: str,
     book_id: str,
+    page_number: int,
     db: Session = Depends(get_db),
     current_user=Depends(oauth2.get_current_user),
 ):
@@ -68,7 +71,7 @@ async def user_query(
             status.HTTP_404_NOT_FOUND,
             detail="Book not found",
         )
-
+    # query = query_rewrite(text, book_id, current_user.id, page_number, db)
     query_embedding = get_embedding([text])
     results = chroma_db.collection.query(
         query_embeddings=query_embedding,
@@ -82,6 +85,7 @@ async def user_query(
         )
 
     context = "\n\n".join(documents)
+
     prompt = f"""
             Context:
 
@@ -107,4 +111,15 @@ async def user_query(
             - If the context does not contain enough information, state that clearly in one or two lines and briefly explain what is missing.
             """
     response = query(prompt, USER_QUERY_PROMPT)
+    query_record = models.UserQuery(
+        query_id=str(uuid.uuid4()),
+        user_id=current_user.id,
+        book_id=book_id,
+        page_number = page_number,
+        query_text=text,
+        response_text=response.message.content,  
+    )
+    db.add(query_record)
+    db.commit()
+    db.refresh(query_record)
     return schemas.SummaryResponse(response = response.message.content)
