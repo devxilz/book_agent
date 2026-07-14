@@ -80,9 +80,23 @@ graph TD;
 
 ## 1. INSTALLATION
 
+First, ensure you have [uv](https://github.com/astral-sh/uv) installed. It is an incredibly fast Python package manager.
+
+**Install uv:**
+```bash
+# On macOS and Linux
+curl -LsSf https://astral.sh/uv/install.sh | sh
+
+# On Windows
+powershell -c "irm https://astral.sh/uv/install.ps1 | iex"
+```
+
+**Clone and Setup the Project:**
 ```bash
 git clone https://github.com/your-username/ai-book-teacher.git
 cd ai_book_teacher
+
+# Sync dependencies using uv
 uv sync
 ```
 *(Alternatively: `pip install -r requirements.txt`)*
@@ -90,13 +104,13 @@ uv sync
 ## 2. ENVIRONMENT CONFIGURATION
 Create a `.env` file in the root of the project:
 ```ini
-OPENAI_API_KEY=your_api_key_here
-LLM_MODEL_NAME=llama3  
-VLM_MODEL_NAME=llava   
+LLM_MODEL_NAME=qwen3:8b
+VLM_MODEL_NAME=qwen2.5vl:7b  
 ```
 
 ## 3. INITIALIZE THE DATABASE
 ```bash
+alembic revision --autogenerate -m "Initial migration" # this will create all the models
 alembic upgrade head
 ```
 
@@ -104,6 +118,4 @@ alembic upgrade head
 Ensure Ollama is running if using local models, then start the server:
 ```bash
 uvicorn backend.main:app --reload
-```
-- **Web App**: `http://localhost:8000/`
-- **API Docs**: `http://localhost:8000/docs`
+
