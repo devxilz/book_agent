@@ -6,9 +6,9 @@
 
 [![Python 3.11+](https://img.shields.io/badge/Python-3.11%2B-blue.svg?style=for-the-badge&logo=python&logoColor=white)](https://www.python.org/)
 [![FastAPI](https://img.shields.io/badge/FastAPI-0.137%2B-009688.svg?style=for-the-badge&logo=fastapi&logoColor=white)](https://fastapi.tiangolo.com)
+[![PostgreSQL](https://img.shields.io/badge/PostgreSQL-Relational_DB-336791.svg?style=for-the-badge&logo=postgresql&logoColor=white)](https://www.postgresql.org/)
 [![Ollama](https://img.shields.io/badge/Ollama-Local_AI-white.svg?style=for-the-badge&logo=ollama&logoColor=black)](https://ollama.ai)
 [![ChromaDB](https://img.shields.io/badge/ChromaDB-Vector_Storage-FF69B4.svg?style=for-the-badge)](https://trychroma.com)
-[![uv](https://img.shields.io/badge/uv-Extremely_Fast-purple.svg?style=for-the-badge)](https://github.com/astral-sh/uv)
 
 <br/>
 
@@ -46,11 +46,11 @@
 ```mermaid
 graph TD;
     A[User Uploads PDF] --> B{Is Page a Scanned Image?};
-    B -- Yes --> C[Render as Image];
-    C --> D[Ollama VLM Extraction];
-    B -- No --> E[PyMuPDF Direct Text Extraction];
-    D --> F[Text Chunking Module];
-    E --> F;
+    B -- Yes --> C[Ollama VLM Extraction];
+    B -- No --> D[PyMuPDF Direct Text Extraction];
+    C --> E[(PostgreSQL Metadata Store)];
+    D --> E;
+    E --> F[Text Chunking Module];
     F --> G[Sentence Transformers Embedding];
     G --> H[(ChromaDB Vector Store)];
 ```
@@ -61,7 +61,7 @@ graph TD;
 
 ```mermaid
 graph TD;
-    A[User Requests to Learn a Page] --> B[(SQLite/Postgres Database)];
+    A[User Requests to Learn a Page] --> B[(PostgreSQL Database)];
     B --> C[Retrieve Raw Page Content];
     C --> D[Metadata Stripper];
     D --> E[Inject into Pedagogical System Prompt];
@@ -85,7 +85,7 @@ git clone https://github.com/your-username/ai-book-teacher.git
 cd ai_book_teacher
 uv sync
 ```
-*(Alternatively: `uv pip install -r requirements.txt`)*
+*(Alternatively: `pip install -r requirements.txt`)*
 
 ## 2. ENVIRONMENT CONFIGURATION
 Create a `.env` file in the root of the project:
@@ -97,13 +97,13 @@ VLM_MODEL_NAME=llava
 
 ## 3. INITIALIZE THE DATABASE
 ```bash
-uv run alembic upgrade head
+alembic upgrade head
 ```
 
 ## 4. RUN THE APPLICATION
 Ensure Ollama is running if using local models, then start the server:
 ```bash
-uv run uvicorn backend.main:app --reload
+uvicorn backend.main:app --reload
 ```
 - **Web App**: `http://localhost:8000/`
 - **API Docs**: `http://localhost:8000/docs`
