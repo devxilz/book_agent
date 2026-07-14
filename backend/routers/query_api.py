@@ -57,7 +57,7 @@ async def page_summary(
 async def user_query(
     text: str,
     book_id: str,
-    page_number: int,
+    # page_number: int,
     db: Session = Depends(get_db),
     current_user=Depends(oauth2.get_current_user),
 ):
@@ -111,15 +111,15 @@ async def user_query(
             - If the context does not contain enough information, state that clearly in one or two lines and briefly explain what is missing.
             """
     response = query(prompt, USER_QUERY_PROMPT)
-    query_record = models.UserQuery(
-        query_id=str(uuid.uuid4()),
-        user_id=current_user.id,
-        book_id=book_id,
-        page_number = page_number,
-        query_text=text,
-        response_text=response.message.content,  
-    )
-    db.add(query_record)
-    db.commit()
-    db.refresh(query_record)
+    # query_record = models.UserQuery(
+    #     query_id=str(uuid.uuid4()),
+    #     user_id=current_user.id,
+    #     book_id=book_id,
+    #     page_number = page_number,
+    #     query_text=text,
+    #     response_text=response.message.content,  
+    # )
+    # db.add(query_record)
+    # db.commit()
+    # db.refresh(query_record)
     return schemas.SummaryResponse(response = response.message.content)
